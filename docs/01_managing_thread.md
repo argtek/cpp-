@@ -1,6 +1,6 @@
 ## [std::thread](https://en.cppreference.com/w/cpp/thread/thread)
 
-* 每个程序有一个执行 main() 函数的主线程，将函数添加为 [std::thread](https://en.cppreference.com/w/cpp/thread/thread) 的参数即可启动另一个线程，两个线程会同时运行
+* 每个程序有一个***执行 main() 函数的主线程***，将函数添加为 [std::thread](https://en.cppreference.com/w/cpp/thread/thread) 的**参数（作为构造函数的参数）** 即可**启动**另一个线程，两个线程会**同时（主线程和子线程会同时运行）** 运行，这个和进程的创建不一样，进程创建需要系统的支持，需要系统调用（UNIX：fork。Windows：CreatProc）
 
 ```cpp
 #include <iostream>
@@ -9,8 +9,8 @@
 void f() { std::cout << "hello world"; }
 
 int main() {
-  std::thread t{f};
-  t.join();  // 等待新起的线程退出
+  std::thread t{f}; **创建后就立即启动开始执行，这个和进程不一样，在UNIX中，进程创建之后，只是分配了资源，并没有开始执行，需要分配代码段，才能开始执行**
+  t.join();  // 等待新起的线程退出（当前执行这个代码的只能是主线程，这个就是要求主线程进行等待）
 }
 ```
 
@@ -21,11 +21,12 @@ int main() {
 #include <thread>
 
 struct A {
+// 对call运算符进行重载
   void operator()() const { std::cout << 1; }
 };
 
 int main() {
-  A a;
+  A a; // 仿函数也有自己的默认构造函数
   std::thread t1(a);  // 会调用 A 的拷贝构造函数
   std::thread t2(A());  // most vexing parse，声明名为 t2 参数类型为 A 的函数
   std::thread t3{A()};
